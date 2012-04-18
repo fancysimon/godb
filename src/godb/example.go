@@ -6,15 +6,17 @@ package main
 import (
 	"fmt"
 	"godb/container/skip_list"
+	"godb/util/comparator"
 )
 
 func main() {
 	s := new(skip_list.SkipList)
-	s.Init()
+	cmp := new(comparator.BytewiseComparator)
+	s.Init(cmp)
 	
 	s.Print()
 	
-	var key skip_list.Key
+	var key string
 	key	= "1"
 	if s.Search(key) {
 		fmt.Println("Error: key(%d) in skip list", key)
@@ -46,6 +48,13 @@ func main() {
 		fmt.Println("Error: key(%d) in skip list", key)
 	}
 	key = "5"
+	if s.Search(key) {
+		fmt.Println("Error: key(%d) not in skip list", key)
+	}
+	
+	s.Delete("4")
+	s.Print()
+	key = "4"
 	if s.Search(key) {
 		fmt.Println("Error: key(%d) not in skip list", key)
 	}

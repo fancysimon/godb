@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
+	"godb/util/comparator"
 )
 
 const (
@@ -14,20 +15,15 @@ const (
 	kBranching = 2 	/* 4 */
 )
 
-type Key string
-
-func (key Key) Compare(other Key) bool {
-	return key < other
-}
-
 type Node struct {
-	key Key
+	key string
 	next []*Node
 }
 
 type SkipList struct {
 	head *Node
 	height int
+	cmp comparator.Comparator
 }
 
 func init() {
@@ -47,17 +43,19 @@ func NewNode(height int) *Node {
 }
 
 // Init skip list
-func (s *SkipList) Init() {
+func (s *SkipList) Init(cmp comparator.Comparator) {
 	s.height = kMaxHeight
 	s.head = NewNode(s.height)
+	s.cmp = cmp
 }
 
 // Search implication
-func (s *SkipList) searchImpl(key Key) (bool, []*Node) {
+func (s *SkipList) searchImpl(key string) (bool, []*Node) {
 	var update = make([]*Node, s.height)
 	var node = s.head
 	for i := s.height - 1; i >= 0; i-- {
-		for node.next[i] != nil && node.next[i].key.Compare(key) == true {
+		//for node.next[i] != nil && node.next[i].key.Compare(key) == true {
+		for node.next[i] != nil && s.cmp.Compare(node.next[i].key, key) < 0 {
 			node = node.next[i]
 		}
 		update[i] = node
@@ -70,7 +68,7 @@ func (s *SkipList) searchImpl(key Key) (bool, []*Node) {
 }
 
 // Search key
-func (s *SkipList) Search(key Key) bool {
+func (s *SkipList) Search(key string) bool {
 	has_key, _ := s.searchImpl(key)
 	return has_key
 }
@@ -85,7 +83,7 @@ func RandomHeight() int {
 }
 
 // Insert key to skip list
-func (s *SkipList) Insert(key Key) {
+func (s *SkipList) Insert(key string) {
 	has_key, update := s.searchImpl(key)
 	if !has_key {
 		height := RandomHeight()
@@ -100,6 +98,17 @@ func (s *SkipList) Insert(key Key) {
 		for i := 0; i < height; i++ {
 			new_node.next[i] = update[i].next[i]
 			update[i].next[i] = new_node
+		}
+	}
+}
+
+// Delete key in skip list
+func (s *SkipList) Delete(key string) {
+	has_key, update := s.searchImpl(key)
+	if has_key {
+		node := update[0].next[0]
+		for i := 0; i < len(node.next); i++ {
+			update[i].next[i] = node.next[i]
 		}
 	}
 }
