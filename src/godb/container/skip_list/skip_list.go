@@ -6,11 +6,12 @@ package skip_list
 import (
 	"fmt"
 	"math/rand"
+	"time"
 )
 
 const (
 	kMaxHeight = 12
-	kBranching = 4
+	kBranching = 2 	/* 4 */
 )
 
 type Key string
@@ -29,6 +30,13 @@ type SkipList struct {
 	height int
 }
 
+func init() {
+	t := time.Now()
+	second := t.UnixNano()
+	println("DEBUG: Seed:", second)
+	rand.Seed(second)
+}
+
 func NewNode(height int) *Node {
 	var node = new(Node)
 	node.next = make([]*Node, height)
@@ -44,19 +52,27 @@ func (s *SkipList) Init() {
 	s.head = NewNode(s.height)
 }
 
-// Search key
-func (s *SkipList) Search(key Key) bool {
+// Search implication
+func (s *SkipList) searchImpl(key Key) (bool, []*Node) {
+	var update = make([]*Node, s.height)
 	var node = s.head
 	for i := s.height - 1; i >= 0; i-- {
 		for node.next[i] != nil && node.next[i].key.Compare(key) == true {
 			node = node.next[i]
 		}
+		update[i] = node
 	}
 	node = node.next[0]
 	if node != nil && node.key == key {
-		return true
+		return true, update
 	}
-	return false
+	return false, update
+}
+
+// Search key
+func (s *SkipList) Search(key Key) bool {
+	has_key, _ := s.searchImpl(key)
+	return has_key
 }
 
 func RandomHeight() int {
@@ -64,21 +80,14 @@ func RandomHeight() int {
 	for rand.Intn(kBranching) == 0 && height < kMaxHeight {
 		height++
 	}
+	println("DEBUG: Random height:", height)
 	return height
 }
 
 // Insert key to skip list
 func (s *SkipList) Insert(key Key) {
-	var update = make([]*Node, s.height)
-	var node = s.head
-	for i := s.height - 1; i >= 0; i-- {
-		for node.next[i] != nil && node.next[i].key.Compare(key) {
-			node = node.next[i]
-		}
-		update[i] = node
-	}
-
-	if node == s.head || node.key != key {
+	has_key, update := s.searchImpl(key)
+	if !has_key {
 		height := RandomHeight()
 		if height > s.height {
 			for i := s.height; i < height; i++ {
@@ -98,7 +107,19 @@ func (s *SkipList) Insert(key Key) {
 func (s *SkipList) Print() {
 	var node = s.head
 	for node != nil {
-		fmt.Print(node.key, " ")
+		if node == s.head {
+			fmt.Print("List head: ")
+		}
+		fmt.Print("Key:", node.key, " height:", len(node.next))
+		fmt.Print("  Next keys:")
+		for _, next := range node.next {
+			if next != nil {
+				fmt.Print(next.key, " ")
+			} else {
+				fmt.Print(nil, " ")
+			}
+		}
+		fmt.Println()
 		node = node.next[0]
 	}
 	fmt.Println()
