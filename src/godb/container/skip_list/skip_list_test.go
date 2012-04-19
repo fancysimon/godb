@@ -8,7 +8,7 @@ import (
 	"godb/util/comparator"
 )
 
-func TestExample(t *testing.T) {
+func TestSkipList(t *testing.T) {
 	s := new(SkipList)
 	cmp := new(comparator.BytewiseComparator)
 	s.Init(cmp)
@@ -29,5 +29,11 @@ func TestExample(t *testing.T) {
 	key = "5"
 	if s.Search(key) {
 		t.Errorf("key(%d) not in skip list", key)
+	}
+	
+	key = "4"
+	s.Delete("4")
+	if s.Search(key) {
+		t.Errorf("key(%d) in skip list", key)
 	}
 }

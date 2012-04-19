@@ -29,7 +29,6 @@ type SkipList struct {
 func init() {
 	t := time.Now()
 	second := t.UnixNano()
-	println("DEBUG: Seed:", second)
 	rand.Seed(second)
 }
 
@@ -78,7 +77,6 @@ func RandomHeight() int {
 	for rand.Intn(kBranching) == 0 && height < kMaxHeight {
 		height++
 	}
-	println("DEBUG: Random height:", height)
 	return height
 }
 
